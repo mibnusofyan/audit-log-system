@@ -13,7 +13,7 @@ exports.createProduct = async (req, res) => {
       stock,
     });
 
-    // Catat aktivitas CREATE
+    // Log aktivitas CREATE
     await auditLogService.logEvent({
       userId: req.user.id,
       action: "CREATE",
@@ -64,7 +64,7 @@ exports.updateProduct = async (req, res) => {
 
     await product.update({ name, description, price, stock });
 
-    // Catat aktivitas UPDATE
+    // Log aktivitas UPDATE
     await auditLogService.logEvent({
       userId: req.user.id,
       action: "UPDATE",
@@ -92,7 +92,7 @@ exports.deleteProduct = async (req, res) => {
 
     await product.destroy();
 
-    // Catat aktivitas DELETE
+    // Log aktivitas DELETE
     await auditLogService.logEvent({
       userId: req.user.id,
       action: "DELETE",

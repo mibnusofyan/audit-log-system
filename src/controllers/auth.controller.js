@@ -64,7 +64,7 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" },
     );
 
-    // 1) Pencatatan aktivitas login
+    // Log aktivitas login
     await auditLogService.logEvent({
       userId: user.id,
       action: "LOGIN",
@@ -83,7 +83,6 @@ exports.login = async (req, res) => {
 // LOGOUT
 exports.logout = async (req, res) => {
   try {
-    // 2) Pencatatan aktivitas logout
     // req.user diset oleh middleware verifyToken
     if (req.user) {
       await auditLogService.logEvent({
@@ -92,10 +91,6 @@ exports.logout = async (req, res) => {
         ipAddress: req.ip
       });
     }
-
-    // Pada sistem stateless (JWT), logout murni biasanya dilakukan dengan 
-    // cara menghapus token di sisi klien (frontend). 
-    // Namun kita tetap merespon berhasil dan mencatat aktivitasnya di sini.
     res.json({ message: "Logout success" });
   } catch (error) {
     res.status(500).json({ error: error.message });
