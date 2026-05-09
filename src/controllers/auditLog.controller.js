@@ -43,3 +43,52 @@ exports.getLogs = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// GET Suspicious Activities
+exports.getSuspiciousActivities = async (req, res) => {
+  try {
+    // aktivitas mencurigakan: lebih dari 5 action DELETE dalam 24 jam terakhir,
+    // atau login gagal berturut-turut ( action FAILED_LOGIN).
+    
+    // Waktu 24 jam yang lalu
+    const yesterday = new Date();
+    yesterday.setHours(yesterday.getHours() - 24);
+
+    const logs = await AuditLog.findAll({
+      where: {
+        createdAt: {
+          [Op.gte]: yesterday
+        },
+        action: {
+          [Op.in]: ["DELETE", "FAILED_LOGIN"]
+        }
+      },
+      order: [["createdAt", "DESC"]]
+    });
+
+    // Menghitung jumlah aktivitas mencurigakan per user
+    const userActivityCount = {};
+    const suspiciousLogs = [];
+
+    logs.forEach(log => {
+      if (!userActivityCount[log.userId]) {
+        userActivityCount[log.userId] = 0;
+      }
+      userActivityCount[log.userId]++;
+
+      // Jika lebih dari jumlah wajar dalam sehari (misal 3 kali)
+      if (userActivityCount[log.userId] > 3) {
+        suspiciousLogs.push(log);
+      }
+    });
+
+    res.status(200).json({
+      message: "Deteksi aktivitas mencurigakan dalam 24 jam terakhir.",
+      suspiciousLogs
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
