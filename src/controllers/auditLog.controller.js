@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, fn, col } = require("sequelize");
 const AuditLog = require("../models/auditLog.model");
 
 // GET all Audit Logs with filtering
@@ -91,4 +91,49 @@ exports.getSuspiciousActivities = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// GET Dashboard Stats
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const yesterday = new Date();
+    yesterday.setHours(yesterday.getHours() - 24);
+
+    // Total semua aktivitas
+    const totalActivities = await AuditLog.count();
+
+    // Aktivitas 24 jam terakhir
+    const recentActivitiesCount = await AuditLog.count({
+      where: {
+        createdAt: {
+          [Op.gte]: yesterday
+        }
+      }
+    });
+
+    // Distribusi aktivitas berdasarkan 'action'
+    const actionDistribution = await AuditLog.findAll({
+      attributes: ['action', [fn('COUNT', col('action')), 'count']],
+      group: ['action']
+    });
+
+    // Aktivitas terbaru (5 log terakhir)
+    const recentLogs = await AuditLog.findAll({
+      limit: 5,
+      order: [["createdAt", "DESC"]]
+    });
+
+    res.status(200).json({
+      message: "Data Dashboard Berhasil Diambil",
+      data: {
+        totalActivities,
+        recentActivitiesCount,
+        actionDistribution,
+        recentLogs
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
