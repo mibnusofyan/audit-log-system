@@ -20,4 +20,7 @@ router.get("/", verifyToken, allowAdminOrAuditor, getLogs);
 // Route: GET /api/audit-logs/suspicious
 router.get("/suspicious", verifyToken, allowAdminOrAuditor, getSuspiciousActivities);
 
+// Route: GET /api/audit-logs/dashboard
+router.get("/dashboard", verifyToken, allowAdminOrAuditor, getDashboardStats);
+
 module.exports = router;
