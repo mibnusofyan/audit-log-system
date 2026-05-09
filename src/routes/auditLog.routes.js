@@ -1,5 +1,5 @@
 const express = require("express");
-const { getLogs } = require("../controllers/auditLog.controller");
+const { getLogs, getSuspiciousActivities, getDashboardStats } = require("../controllers/auditLog.controller");
 const { verifyToken } = require("../middleware/auth.middleware");
 
 const router = express.Router();
@@ -16,5 +16,8 @@ const allowAdminOrAuditor = (req, res, next) => {
 // Route: GET /api/audit-logs
 // Query Parameters yang diterima: ?userId=... &action=... &startDate=... &endDate=...
 router.get("/", verifyToken, allowAdminOrAuditor, getLogs);
+
+// Route: GET /api/audit-logs/suspicious
+router.get("/suspicious", verifyToken, allowAdminOrAuditor, getSuspiciousActivities);
 
 module.exports = router;
