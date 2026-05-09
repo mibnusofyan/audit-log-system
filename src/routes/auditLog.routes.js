@@ -1,5 +1,5 @@
 const express = require("express");
-const { getLogs, getSuspiciousActivities, getDashboardStats } = require("../controllers/auditLog.controller");
+const { getLogs, getSuspiciousActivities, getDashboardStats, getUserActivityHistory } = require("../controllers/auditLog.controller");
 const { verifyToken } = require("../middleware/auth.middleware");
 
 const router = express.Router();
@@ -22,5 +22,8 @@ router.get("/suspicious", verifyToken, allowAdminOrAuditor, getSuspiciousActivit
 
 // Route: GET /api/audit-logs/dashboard
 router.get("/dashboard", verifyToken, allowAdminOrAuditor, getDashboardStats);
+
+// Route: GET /api/audit-logs/user/:userId
+router.get("/user/:userId", verifyToken, allowAdminOrAuditor, getUserActivityHistory);
 
 module.exports = router;
