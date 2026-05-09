@@ -136,4 +136,46 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
+// GET User Activity History
+exports.getUserActivityHistory = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { action, startDate, endDate, limit = 50 } = req.query;
+
+    const whereCondition = { userId };
+
+    if (action) {
+      whereCondition.action = action;
+    }
+
+    if (startDate || endDate) {
+      whereCondition.createdAt = {};
+      if (startDate) {
+        whereCondition.createdAt[Op.gte] = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        whereCondition.createdAt[Op.lte] = end;
+      }
+    }
+
+    const logs = await AuditLog.findAll({
+      where: whereCondition,
+      order: [["createdAt", "DESC"]],
+      limit: parseInt(limit, 10)
+    });
+
+    res.status(200).json({
+      message: `Detail histori aktivitas untuk User ID: ${userId}`,
+      totalRecords: logs.length,
+      data: logs
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 
