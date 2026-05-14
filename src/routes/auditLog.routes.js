@@ -1,5 +1,5 @@
 const express = require("express");
-const { getLogs, getSuspiciousActivities, getDashboardStats, getUserActivityHistory } = require("../controllers/auditLog.controller");
+const { getLogs, getSuspiciousActivities, getDashboardStats, getUserActivityHistory, exportLogsCsv } = require("../controllers/auditLog.controller");
 const { verifyToken } = require("../middleware/auth.middleware");
 
 const router = express.Router();
@@ -16,6 +16,10 @@ const allowAdminOrAuditor = (req, res, next) => {
 // Route: GET /api/audit-logs
 // Query Parameters yang diterima: ?userId=... &action=... &startDate=... &endDate=...
 router.get("/", verifyToken, allowAdminOrAuditor, getLogs);
+
+// Route: GET /api/audit-logs/export
+// Export data ke format CSV
+router.get("/export", verifyToken, allowAdminOrAuditor, exportLogsCsv);
 
 // Route: GET /api/audit-logs/suspicious
 router.get("/suspicious", verifyToken, allowAdminOrAuditor, getSuspiciousActivities);

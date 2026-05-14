@@ -1,5 +1,6 @@
 const { Op, fn, col } = require("sequelize");
 const AuditLog = require("../models/auditLog.model");
+const { Parser } = require("json2csv");
 
 // GET all Audit Logs with filtering
 exports.getLogs = async (req, res) => {
@@ -171,6 +172,69 @@ exports.getUserActivityHistory = async (req, res) => {
       totalRecords: logs.length,
       data: logs
     });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// GET Export Logs to CSV
+exports.exportLogsCsv = async (req, res) => {
+  try {
+    const { userId, action, startDate, endDate } = req.query;
+    
+    const whereCondition = {};
+
+    if (userId) {
+      whereCondition.userId = userId;
+    }
+
+    if (action) {
+      whereCondition.action = action;
+    }
+
+    if (startDate || endDate) {
+      whereCondition.createdAt = {};
+      if (startDate) {
+        whereCondition.createdAt[Op.gte] = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        whereCondition.createdAt[Op.lte] = end;
+      }
+    }
+
+    const logs = await AuditLog.findAll({
+      where: whereCondition,
+      order: [["createdAt", "DESC"]]
+    });
+
+    if (logs.length === 0) {
+      return res.status(404).json({ message: "Tidak ada data log untuk diekspor sesuai filter tersebut." });
+    }
+
+    // Pemformatan data untuk representasi CSV
+    const reportData = logs.map(log => ({
+      ID: log.id,
+      User_ID: log.userId,
+      Action: log.action,
+      Entity: log.entity || "-",
+      Entity_ID: log.entityId || "-",
+      Details: log.details || "-",
+      IP_Address: log.ipAddress || "-",
+      Tanggal: new Date(log.createdAt).toLocaleString("id-ID")
+    }));
+
+    // Konversi JSON ke CSV
+    const fields = ['ID', 'User_ID', 'Action', 'Entity', 'Entity_ID', 'Details', 'IP_Address', 'Tanggal'];
+    const json2csvParser = new Parser({ fields });
+    const csv = json2csvParser.parse(reportData);
+
+    // Kirim response sebagai file lampiran CSV
+    res.header('Content-Type', 'text/csv');
+    res.attachment('audit_logs_report.csv');
+    return res.status(200).send(csv);
 
   } catch (error) {
     res.status(500).json({ error: error.message });
