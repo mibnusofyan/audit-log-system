@@ -1,5 +1,8 @@
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config({ quiet: true });
+}
 
 // Verifikasi token
 exports.verifyToken = (req, res, next) => {

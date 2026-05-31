@@ -3,7 +3,9 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const auditLogService = require("../services/auditLog.service");
 
-require("dotenv").config();
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config({ quiet: true });
+}
 
 const PRIVILEGED_ROLES = ["admin", "auditor"];
 
