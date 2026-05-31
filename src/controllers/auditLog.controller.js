@@ -49,7 +49,7 @@ exports.getLogs = async (req, res) => {
 exports.getSuspiciousActivities = async (req, res) => {
   try {
     // aktivitas mencurigakan: lebih dari 5 action DELETE dalam 24 jam terakhir,
-    // atau login gagal berturut-turut ( action FAILED_LOGIN).
+    // atau login gagal berturut-turut (action LOGIN_FAILED).
     
     // Waktu 24 jam yang lalu
     const yesterday = new Date();
@@ -61,7 +61,7 @@ exports.getSuspiciousActivities = async (req, res) => {
           [Op.gte]: yesterday
         },
         action: {
-          [Op.in]: ["DELETE", "FAILED_LOGIN"]
+          [Op.in]: ["DELETE", "LOGIN_FAILED"]
         }
       },
       order: [["createdAt", "DESC"]]
