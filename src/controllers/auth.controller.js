@@ -5,10 +5,15 @@ const auditLogService = require("../services/auditLog.service");
 
 require("dotenv").config();
 
+const toSafeUser = (user) => {
+  const { password, ...safeUser } = user.toJSON();
+  return safeUser;
+};
+
 // REGISTER
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -16,7 +21,7 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role,
+      role: "user",
     });
 
     // Log create User
@@ -25,13 +30,13 @@ exports.register = async (req, res) => {
       action: "CREATE",
       entity: "User",
       entityId: user.id,
-      details: { name, email, role },
+      details: { name, email, role: user.role },
       ipAddress: req.ip
     });
 
     res.json({
       message: "User registered successfully",
-      user,
+      user: toSafeUser(user),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
